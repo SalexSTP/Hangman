@@ -54,7 +54,7 @@ void DrawCurrentGameState(bool inputIsValid, bool inputIsDifferent, int incorrec
 
     if (inputIsValid)
     {
-        Console.WriteLine("You should type only a single character!");
+        Console.WriteLine("You should type only a single letter!");
     }
     if (inputIsDifferent)
     {
@@ -69,7 +69,7 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
     {
         string playerInput = Console.ReadLine().ToLower();
 
-        if (playerInput.Length != 1)
+        if (playerInput.Length != 1 || playerInput.All(char.IsDigit))
         {
             DrawCurrentGameState(true, false, incorrectGuessCount, wordToGuess, playerUsedLetters);
             continue;
