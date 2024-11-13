@@ -67,15 +67,11 @@ void DrawCurrentGameState(bool inputIsValid, bool inputIsDifferent, int incorrec
     if (inputIsValid)
     {
         Console.WriteLine("You should only type a single letter that is not a number or a symbol!");
-        Thread.Sleep(1000);
-        Console.Clear();
     }
 
     if (inputIsDifferent)
     {
         Console.WriteLine("You can't use the same letter again!");
-        Thread.Sleep(1000);
-        Console.Clear();
     }
 }
 
