@@ -1,9 +1,15 @@
 ﻿using Hangman;
+using System.Text;
 
 string[] words = ReadWordsFromFile();
 Console.CursorVisible = false;
+Console.OutputEncoding = Encoding.UTF8;
 const char Underscore = '_';
 const int MaxAllowedIncorrectCharacters = 6;
+int sumOfCorrectInARow = 0;
+int consecutiveIncorrectGuesses = 0;  
+string fire = "🔥";
+
 
 while (true)
 {
@@ -29,17 +35,13 @@ while (true)
     Console.Clear();
 }
 
-
 static string[] ReadWordsFromFile()
 {
     string currentDirectory = Directory.GetCurrentDirectory();
     string projectDirectory = Directory.GetParent(currentDirectory).Parent.Parent.FullName;
-
     const string WordsFileName = "words.txt";
-
     string path = $@"{projectDirectory}\{WordsFileName}";
     string[] words = File.ReadAllLines(path);
-
     return words;
 }
 
@@ -47,20 +49,19 @@ void DrawCurrentGameState(bool inputIsValid, bool inputIsDifferent, int incorrec
 {
     Console.Clear();
     Console.WriteLine(Animations.wrongGuessesFrames[incorrectGuess]);
+    if (inputIsValid) Console.WriteLine("You should type only a single letter!");
+    if (inputIsDifferent) Console.WriteLine("You can't use the same letter again!");
+
+    int unguessedLetters = guessedWord.Count(c => c == Underscore);
     Console.WriteLine($"Guess: {guessedWord}");
-    Console.WriteLine($"You have to guess {guessedWord.Length} symbols.");
+    Console.WriteLine($"You have to guess {unguessedLetters} symbols.");
     Console.WriteLine($"The following letters are used: {String.Join(", ", playerUsedLetters)}");
     Console.WriteLine($"Tries: {MaxAllowedIncorrectCharacters - incorrectGuess}");
-
-    if (inputIsValid)
+    Console.Write("Your symbol: ");
+    if (sumOfCorrectInARow > 1)
     {
-        Console.WriteLine("You should type only a single letter!");
+        Console.WriteLine($"You are on a {sumOfCorrectInARow} {fire} streak");
     }
-    if (inputIsDifferent)
-    {
-        Console.WriteLine("You can't use the same letter again!");
-    }
-    Console.WriteLine("Your symbol: ");
 }
 
 void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<char> playerUsedLetters)
@@ -68,7 +69,6 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
     while (true)
     {
         string playerInput = Console.ReadLine().ToLower();
-
         if (playerInput.Length != 1 || playerInput.All(char.IsDigit))
         {
             DrawCurrentGameState(true, false, incorrectGuessCount, wordToGuess, playerUsedLetters);
@@ -81,47 +81,102 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
             DrawCurrentGameState(false, true, incorrectGuessCount, wordToGuess, playerUsedLetters);
             continue;
         }
-
-        playerUsedLetters.Add(playerLetter);
-
+        if (!word.Contains(playerLetter))
+        {
+            playerUsedLetters.Add(playerLetter);
+        }
+        sumOfCorrectInARow++;
         bool playerLetterIsContained = CheckIfSymbolIsContained(word, playerLetter);
 
         if (playerLetterIsContained)
         {
             wordToGuess = AddLetterToGuessWord(word, playerLetter, wordToGuess);
+            consecutiveIncorrectGuesses = 0;  
         }
         else
         {
             incorrectGuessCount++;
+            sumOfCorrectInARow = 0;
+            consecutiveIncorrectGuesses++;  
+        }
+
+        
+        if (consecutiveIncorrectGuesses >= 3)
+        {
+            OfferGift(ref incorrectGuessCount, ref wordToGuess, word);
+            consecutiveIncorrectGuesses = 0;  
         }
 
         DrawCurrentGameState(false, false, incorrectGuessCount, wordToGuess, playerUsedLetters);
-
         bool playerWins = CheckIfPlayerWins(wordToGuess);
 
         if (playerWins)
         {
             Console.Clear();
             Console.WriteLine(Animations.win);
+            if (sumOfCorrectInARow > 1)
+            {
+                Console.WriteLine($"CONGRATULATIONS! YOU WON WITH A {sumOfCorrectInARow} {fire} STREAK!");
+            }
             Console.WriteLine($"The word you guessed is [{word}].");
-
             break;
         }
 
         bool playerLoses = CheckIfPlayerLoses(incorrectGuessCount);
-
         if (playerLoses)
         {
             Console.SetCursorPosition(0, 0);
             DrawDeathAnimation(Animations.deathAnimationFrames);
-
             Console.Clear();
             Console.WriteLine(Animations.loss);
             Console.WriteLine($"The exact word is [{word}].");
-
             break;
         }
     }
+}
+
+void OfferGift(ref int incorrectGuessCount, ref string wordToGuess, string word)
+{
+    Console.WriteLine("A wild gift appears! Would you like to open it? (yes/no)");
+    string response = Console.ReadLine().ToLower();
+
+    if (response == "yes")
+    {
+        Random random = new Random();
+        int giftType = random.Next(2);
+
+        if (giftType == 0)
+        {
+            
+            incorrectGuessCount = Math.Max(incorrectGuessCount - 1, 0);
+            Console.WriteLine("The gift gives you an extra try!");
+        }
+        else
+        {
+            
+            char hintLetter = RevealRandomLetter(word, wordToGuess);
+            wordToGuess = AddLetterToGuessWord(word, hintLetter, wordToGuess);
+            Console.WriteLine($"The gift reveals a letter: {hintLetter}");
+        }
+    }
+    else
+    {
+        Console.WriteLine("You chose to continue guessing!");
+    }
+}
+
+char RevealRandomLetter(string word, string wordToGuess)
+{
+    List<char> missingLetters = new List<char>();
+    for (int i = 0; i < word.Length; i++)
+    {
+        if (wordToGuess[i] == Underscore)
+        {
+            missingLetters.Add(word[i]);
+        }
+    }
+    Random random = new Random();
+    return missingLetters[random.Next(missingLetters.Count)];
 }
 
 string GetRandomWord(string[] words)
@@ -133,18 +188,12 @@ string GetRandomWord(string[] words)
 
 bool CheckIfSymbolIsContained(string word, char playerLetter)
 {
-    if (!word.Contains(playerLetter))
-    {
-        return false;
-    }
-
-    return true;
+    return word.Contains(playerLetter);
 }
 
 string AddLetterToGuessWord(string word, char playerLetter, string wordToGuess)
 {
     char[] wordToGuessCharArray = wordToGuess.ToCharArray();
-
     for (int i = 0; i < wordToGuess.Length; i++)
     {
         if (playerLetter == word[i])
@@ -152,26 +201,17 @@ string AddLetterToGuessWord(string word, char playerLetter, string wordToGuess)
             wordToGuessCharArray[i] = playerLetter;
         }
     }
-
     return new string(wordToGuessCharArray);
 }
 
 bool CheckIfPlayerWins(string wordToGuess)
 {
-    if (wordToGuess.Contains(Underscore))
-    {
-        return false;
-    }
-    return true;    
+    return !wordToGuess.Contains(Underscore);
 }
 
 bool CheckIfPlayerLoses(int incorrectGuessCount)
 {
-    if (incorrectGuessCount == MaxAllowedIncorrectCharacters)
-    {
-        return true;
-    }
-    return false;
+    return incorrectGuessCount == MaxAllowedIncorrectCharacters;
 }
 
 void DrawDeathAnimation(string[] deathAnimation)
