@@ -9,6 +9,8 @@ Hangman C# Project
 - you should solve the word before the hangman dies.
 - if you enter a number or an input with more than 1 characters the game will tell you that you should type only one letter.
 - if you type the same letter twice or more the game will tell you that you have already used the word and try to type another word without removing a life.
+- there is a guess streak which starts showing up when you guess 2 times in a row and adds up with each right guess. It resets when your guess is wrong.
+- there is a random gift which uppon acception can give you 1 extra try or reveal a letter. You can also decline the gift if you don't want it.
 
 # Structure
 - .vs
