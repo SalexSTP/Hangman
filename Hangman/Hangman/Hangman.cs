@@ -13,7 +13,7 @@ string fire = "🔥";
 
 while (true)
 {
-    string word = "orient";
+    string word = GetRandomWord(words);
     string wordToGuess = new(Underscore, word.Length);
 
     int incorrectGuessCount = 0;
@@ -42,28 +42,41 @@ static string[] ReadWordsFromFile()
     const string WordsFileName = "words.txt";
     string path = $@"{projectDirectory}\{WordsFileName}";
     string[] words = File.ReadAllLines(path);
+
     return words;
-    
 }
 
 void DrawCurrentGameState(bool inputIsValid, bool inputIsDifferent, int incorrectGuess, string guessedWord, List<char> playerUsedLetters)
 {
     Console.Clear();
     Console.WriteLine(Animations.wrongGuessesFrames[incorrectGuess]);
-    if (inputIsValid) Console.WriteLine("You should only type a single letter that is not a number or a symbol!");
-    if (inputIsDifferent) Console.WriteLine("You can't use the same letter again!");
+
     if (sumOfCorrectInARow > 1)
     {
         Console.WriteLine($"You are on a {sumOfCorrectInARow} {fire} streak");
     }
+
     int unguessedLetters = guessedWord.Count(c => c == Underscore);
+
     Console.WriteLine($"Guess: {guessedWord}");
     Console.WriteLine($"You have to guess {unguessedLetters} symbols.");
     Console.WriteLine($"The following letters are used: {String.Join(", ", playerUsedLetters)}");
     Console.WriteLine($"Tries left: {MaxAllowedIncorrectCharacters - incorrectGuess}");
     Console.Write("Your symbol: ");
 
-    
+    if (inputIsValid)
+    {
+        Console.WriteLine("You should only type a single letter that is not a number or a symbol!");
+        Thread.Sleep(1000);
+        Console.Clear();
+    }
+
+    if (inputIsDifferent)
+    {
+        Console.WriteLine("You can't use the same letter again!");
+        Thread.Sleep(1000);
+        Console.Clear();
+    }
 }
 
 void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<char> playerUsedLetters)
@@ -79,6 +92,7 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
         }
 
         char playerLetter = char.Parse(playerInput);
+
         if (playerUsedLetters.Contains(playerLetter))
         {
             DrawCurrentGameState(false, true, incorrectGuessCount, wordToGuess, playerUsedLetters);
@@ -102,7 +116,10 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
 
         playerUsedLetters.Add(playerLetter);
 
-        if (consecutiveIncorrectGuesses >= 3)
+        Random random = new Random();
+        int incorrectGuessesForGift = random.Next(2, 5);
+
+        if (consecutiveIncorrectGuesses >= incorrectGuessesForGift)
         {
             OfferGift(ref incorrectGuessCount, ref wordToGuess, word);
             consecutiveIncorrectGuesses = 0;
@@ -116,10 +133,12 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
         {
             Console.Clear();
             Console.WriteLine(Animations.win);
+
             if (sumOfCorrectInARow > 1)
             {
                 Console.WriteLine($"CONGRATULATIONS! YOU WON WITH A {sumOfCorrectInARow} {fire} STREAK!");
             }
+
             Console.WriteLine($"The word you guessed is [{word}].");
             break;
         }
@@ -128,15 +147,17 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
         if (playerLoses)
         {
             Console.SetCursorPosition(0, 0);
+
             DrawDeathAnimation(Animations.deathAnimationFrames);
+
             Console.Clear();
             Console.WriteLine(Animations.loss);
+
             Console.WriteLine($"The exact word is [{word}].");
             break;
         }
     }
 }
-
 
 void OfferGift(ref int incorrectGuessCount, ref string wordToGuess, string word)
 {
@@ -150,13 +171,11 @@ void OfferGift(ref int incorrectGuessCount, ref string wordToGuess, string word)
 
         if (giftType == 0)
         {
-            
             incorrectGuessCount = Math.Max(incorrectGuessCount - 1, 0);
             Console.WriteLine("The gift gives you an extra try!");
         }
         else
         {
-            
             char hintLetter = RevealRandomLetter(word, wordToGuess);
             wordToGuess = AddLetterToGuessWord(word, hintLetter, wordToGuess);
             Console.WriteLine($"The gift reveals a letter: {hintLetter}");
@@ -167,8 +186,7 @@ void OfferGift(ref int incorrectGuessCount, ref string wordToGuess, string word)
         Console.WriteLine("You chose to continue guessing!");
     }
 
-    
-    Console.ReadLine();
+    Thread.Sleep(2000);
     Console.Clear();
 }
 
