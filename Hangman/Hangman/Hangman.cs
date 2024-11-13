@@ -43,6 +43,7 @@ static string[] ReadWordsFromFile()
     string path = $@"{projectDirectory}\{WordsFileName}";
     string[] words = File.ReadAllLines(path);
     return words;
+    
 }
 
 void DrawCurrentGameState(bool inputIsValid, bool inputIsDifferent, int incorrectGuess, string guessedWord, List<char> playerUsedLetters)
@@ -83,9 +84,10 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
         }
         if (!word.Contains(playerLetter))
         {
+            sumOfCorrectInARow++;
             playerUsedLetters.Add(playerLetter);
         }
-        sumOfCorrectInARow++;
+
         bool playerLetterIsContained = CheckIfSymbolIsContained(word, playerLetter);
 
         if (playerLetterIsContained)
@@ -161,6 +163,7 @@ void OfferGift(ref int incorrectGuessCount, ref string wordToGuess, string word)
     }
     else
     {
+        incorrectGuessCount--;
         Console.WriteLine("You chose to continue guessing!");
     }
 }
