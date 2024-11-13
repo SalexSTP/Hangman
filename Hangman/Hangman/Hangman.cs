@@ -13,7 +13,7 @@ while (true)
     int incorrectGuessCount = 0;
     List<char> playerUsedLetters = new List<char>();
 
-    DrawCurrentGameState(false, incorrectGuessCount, wordToGuess, playerUsedLetters);
+    DrawCurrentGameState(false, false, incorrectGuessCount, wordToGuess, playerUsedLetters);
     PlayGame(word, wordToGuess, incorrectGuessCount, playerUsedLetters);
 
     Console.Write("If you want to play again, press [Enter]. Else, type 'quit': ");
@@ -30,8 +30,6 @@ while (true)
 }
 
 
-
-
 static string[] ReadWordsFromFile()
 {
     string currentDirectory = Directory.GetCurrentDirectory();
@@ -45,19 +43,23 @@ static string[] ReadWordsFromFile()
     return words;
 }
 
-void DrawCurrentGameState(bool inputIsValid, int incorrectGuess, string guessedWord, List<char> playerUsedLetters)
+void DrawCurrentGameState(bool inputIsValid, bool inputIsDifferent, int incorrectGuess, string guessedWord, List<char> playerUsedLetters)
 {
     Console.Clear();
     Console.WriteLine(Animations.wrongGuessesFrames[incorrectGuess]);
     Console.WriteLine($"Guess: {guessedWord}");
     Console.WriteLine($"You have to guess {guessedWord.Length} symbols.");
     Console.WriteLine($"The following letters are used: {String.Join(", ", playerUsedLetters)}");
+    Console.WriteLine($"Tries: {MaxAllowedIncorrectCharacters - incorrectGuess}");
 
     if (inputIsValid)
     {
         Console.WriteLine("You should type only a single character!");
     }
-
+    if (inputIsDifferent)
+    {
+        Console.WriteLine("You can't use the same letter again!");
+    }
     Console.WriteLine("Your symbol: ");
 }
 
@@ -69,11 +71,17 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
 
         if (playerInput.Length != 1)
         {
-            DrawCurrentGameState(true, incorrectGuessCount, wordToGuess, playerUsedLetters);
+            DrawCurrentGameState(true, false, incorrectGuessCount, wordToGuess, playerUsedLetters);
             continue;
         }
 
         char playerLetter = char.Parse(playerInput);
+        if (playerUsedLetters.Contains(playerLetter))
+        {
+            DrawCurrentGameState(false, true, incorrectGuessCount, wordToGuess, playerUsedLetters);
+            continue;
+        }
+
         playerUsedLetters.Add(playerLetter);
 
         bool playerLetterIsContained = CheckIfSymbolIsContained(word, playerLetter);
@@ -87,7 +95,7 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
             incorrectGuessCount++;
         }
 
-        DrawCurrentGameState(false, incorrectGuessCount, wordToGuess, playerUsedLetters);
+        DrawCurrentGameState(false, false, incorrectGuessCount, wordToGuess, playerUsedLetters);
 
         bool playerWins = CheckIfPlayerWins(wordToGuess);
 
