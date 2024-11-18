@@ -12,6 +12,8 @@ Hangman C# Project
 - there is a guess streak which starts showing up when you guess 2 times in a row and adds up with each right guess. It resets when your guess is wrong.
 - there is a random gift which uppon acception can give you 1 extra try or reveal a letter. You can also decline the gift if you don't want it.
 
+ <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Hangman_example.svg/330px-Hangman_example.svg.png">
+
 # Structure
 - .vs
 - Hangman
