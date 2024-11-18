@@ -81,7 +81,7 @@ void PlayGame(string word, string wordToGuess, int incorrectGuessCount, List<cha
     {
         string playerInput = Console.ReadLine().ToLower();
 
-        if (playerInput.Length != 1 || playerInput.All(char.IsDigit) || playerInput.All(char.IsPunctuation))
+        if (playerInput.Length != 1 || !playerInput.All(char.IsLetter))
         {
             DrawCurrentGameState(true, false, incorrectGuessCount, wordToGuess, playerUsedLetters);
             continue;
