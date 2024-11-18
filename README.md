@@ -22,3 +22,7 @@ Hangman C# Project
     - Hangman.csproj
     - words.txt
 - Hangman.sln
+
+# Branches
+- main: where the game is placed.
+- dev-branch: a version of the game with dev mode (cheats) for testing.
